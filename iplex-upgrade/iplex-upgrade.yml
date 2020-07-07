@@ -1,0 +1,72 @@
+---
+- hosts: vercom
+
+  tasks:
+  - name: Create .ssh directory and copy SSH key
+    copy:
+      src: "authorized_keys"
+      dest: "~/.ssh/authorized_keys"
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: Edit bashrc
+    lineinfile:
+      path: /root/.bashrc
+      line: alias ls='ls --color=auto
+      create: no
+
+  - name: Replace repo files
+    copy:
+      src: "{{ items.src }}"
+      dest: "{{ items.dest }}"
+      owner: root
+      group: root
+      mode:  0644
+      backup: yes
+    with_items:
+      - src: base.repo
+        dest: /etc/yum.repos.d/base.repo
+      - src: vercom-addons.repo
+        dest: /etc/yum.repos.d/vercom-addons.repo
+
+  - name: Update yum cache
+    yum: 
+      update_cache: true 
+      cache_valid_time: 3600
+
+  - name: Initial Upgrade
+    yum:
+      name: "*"
+      state: latest
+
+  - name: Reboot Box
+    reboot:
+
+  - name: Install IPlex Packages
+    yum:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      iplex 
+      openss1097a 
+      iplex-yealink 
+      iplex-polycom 
+      screen
+
+  - name: Install DAHDI Drivers
+    command: rpm -Uvh http://apt.iplexconnect.com/dahdi-2.10.0.1-3.i386.rpm http://apt.iplexconnect.com/kmod-dahdi-2.10.0.1-3.i386.rpm
+
+  - name: Symlink Y00 Files
+    file:
+      src: "{{ items.src }}"
+      dest: "{{ items.dest }}"
+      state: Link
+    with_items:
+      - src: /tftpboot/y000000000074.cfg
+        dest: /tftpboot/y000000000095.cfg
+      - src: /tftpboot/y000000000070.cfg
+        dest: /tftpboot/y000000000096.cfg
+
+  - name: Edit T27G Y00 file
+    command: sed -i 's#firmware.url.*#firmware.url = ftp://PlcmSpIp:PlcmSpIp@127.0.0.1/T27G-69.84.0.15.rom#g' /tftpboot/y000000000069.cfg

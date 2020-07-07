@@ -1,0 +1,6 @@
+---
+- hosts: home
+  become: yes
+  tasks:
+    - name: Get Date
+      command: date
