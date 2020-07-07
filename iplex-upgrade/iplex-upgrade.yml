@@ -14,6 +14,7 @@
     lineinfile:
       path: /root/.bashrc
       line: alias ls='ls --color=auto
+      state: present
       create: no
 
   - name: Replace repo files
@@ -45,14 +46,13 @@
 
   - name: Install IPlex Packages
     yum:
-      name: "{{ item }}"
+      name: 
+       - iplex 
+       - openss1097a 
+       - iplex-yealink 
+       - iplex-polycom 
+       - screen
       state: latest
-    with_items:
-      iplex 
-      openss1097a 
-      iplex-yealink 
-      iplex-polycom 
-      screen
 
   - name: Install DAHDI Drivers
     command: rpm -Uvh http://apt.iplexconnect.com/dahdi-2.10.0.1-3.i386.rpm http://apt.iplexconnect.com/kmod-dahdi-2.10.0.1-3.i386.rpm
@@ -69,4 +69,8 @@
         dest: /tftpboot/y000000000096.cfg
 
   - name: Edit T27G Y00 file
-    command: sed -i 's#firmware.url.*#firmware.url = ftp://PlcmSpIp:PlcmSpIp@127.0.0.1/T27G-69.84.0.15.rom#g' /tftpboot/y000000000069.cfg
+    lineinfile:
+      dest: /tftpboot/y000000000069.cfg
+      regexp: 'firmware.url.*'
+      line: 'firmware.url = ftp://PlcmSpIp:PlcmSpIp@127.0.0.1/T27G-69.84.0.15.rom'
+      state: present
