@@ -41,11 +41,11 @@
 
   - name: Install IPlex Packages
     yum:
-      name: 
-       - iplex 
-       - openss1097a 
-       - iplex-yealink 
-       - iplex-polycom 
+      name:
+       - iplex
+       - openss1097a
+       - iplex-yealink
+       - iplex-polycom
        - screen
       state: latest
 
