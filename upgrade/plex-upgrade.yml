@@ -1,16 +1,42 @@
 ---
-- hosts: yum
+# - name: Upgrade Plex
+#   hosts: plex
+#   become: yes
+
+#   handlers:
+#     - name: restart plex
+#       service:
+#         name: plexmediaserver
+#         state: restarted
+
+#   tasks:
+#     - name: Upgrade Plex
+#       yum:
+#         name: plexmediaserver
+#         state: latest
+#       notify: restart plex
+
+- name: Upgrade apt servers
+  hosts: apt
   become: yes
 
-  handlers:
-    - name: restart plex
-      service:
-        name: plexmediaserver
-        state: restarted
-
   tasks:
-  - name: Upgrade Plex
-    yum: 
-      name: plexmediaserver 
-      state: latest
-    notify: restart plex
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        force_apt_get: yes
+
+    - name: Check if reboot is required
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+    - name: Reboot if necessary
+      reboot:
+      when: reboot_required.stat.exists
